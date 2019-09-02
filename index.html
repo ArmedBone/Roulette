@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+</body>
+<script src="Roulette.js"></script>
+<script>
+    var r =new Roulette(300,300,50);
+    r.initStart();
+    var s = new Stage(document.querySelector("#canvas"));
+    s.create(r,70);
+</script>
+</html>
