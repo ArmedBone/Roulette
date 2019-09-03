@@ -22,8 +22,16 @@ class CuteDot {
         ctx.arc(this.x,this.y,this.r,0,2*Math.PI);
     }
 }
+const CuteText = {
+    draw(ctx,value,size,fillColor,x0,y0){
+        ctx.fillStyle=fillColor;
+        ctx.font = "normal "+size+"px Verdana";
+        ctx.fillText(value+"%",x0-20, y0);
+    }
+}
 class Roulette {
-    constructor(x0,y0,r0,dr=1,rw=20,rh=2){
+    constructor(el,x0=120,y0=120,r0=80,dr=1,rw=20,rh=2){
+        this.el=el;
         this.items=[];
         this.x0=x0;
         this.y0=y0;
@@ -31,6 +39,11 @@ class Roulette {
         this.dr=dr;
         this.rw=rw;
         this.rh=rh;
+        this.stage= new Stage(el,2*x0,2*y0);
+        this.initStart();
+    }
+    setValue(num){
+        this.stage.create(this,num);
     }
     translateCircle(a){
         let offset = 10;
@@ -47,7 +60,7 @@ class Roulette {
     }
     getCirclePoints(){
         var points = [];
-        for(var i=190;i<=350;i+=4){
+        for(var i=150;i<=390;i+=4){
             points.push(this.translateCircle(i));
         }
         return points;
@@ -65,36 +78,51 @@ class Roulette {
 
 }
 class Stage {
-    constructor(canvasDom,width=600,height=600){
+    constructor(canvasDom,width=160,height=160){
         this.canvasDom = canvasDom;
         this.canvasDom.width = width;
         this.canvasDom.height = height;
         this.context = this.canvasDom.getContext('2d');
+        this.stackSize=0;
     }
     create(roulette,value){
         var self=this;
         roulette.items.forEach(item=>{
-           self.render(item,'silver');
+           self.render(item,0,'silver');
         })
+        this.setLabel();
         this.setPercent(roulette,value)
     }
+    setLabel(){
+        let ctx = this.context,self=this;
+        ctx.beginPath();
+        ctx.fillStyle="silver"
+        ctx.font = "normal 20px Verdana";
+        ctx.fillText("好评率",this.canvasDom.width/2-30, this.canvasDom.height/2);
+        ctx.fill();
+    }
+    Linear(t, b, c, d) { return c*t/d + b; }
     setPercent(roulette,value){
-        var max = Math.floor(value/100*roulette.items.length),index = 0,self=this;
+        this.stackSize = roulette.items.length
+        var max = value/100*this.stackSize,index = 0,self=this,value=0;
         this.ticker(function () {
-            let item=roulette.items[index]
-            self.render(item,'blue');
-
-            if(index<max){
-                index++;
+            let item=roulette.items[Math.floor(value)]
+            self.render(item,value,'blue');
+            if(index<self.stackSize){
+                index+=1;
+                value=(index/self.stackSize)*max;
                 return true
-            }else{
+            } else{
                 return false
             }
         })
     }
-    render(item,fillColor){
+    render(item,value,fillColor){
+
         let rad = item.get('rad');
         let ctx = this.context,self=this;
+
+
         ctx.translate(this.canvasDom.width/2, this.canvasDom.height/2)
         ctx.rotate(rad);
 
@@ -108,6 +136,19 @@ class Stage {
 
         ctx.rotate(-rad);
         ctx.translate(-this.canvasDom.width/2, -this.canvasDom.height/2)
+
+        this.drawValue(value);
+    }
+    drawValue(value){
+        value =value*100/this.stackSize;
+        let ctx = this.context,self=this;
+        ctx.beginPath();
+        ctx.fillStyle ='rgba(255,255,255,1)';
+        ctx.fillRect(this.canvasDom.width/2-40, this.canvasDom.height/2+10,80, 25);
+        ctx.fill();
+        ctx.beginPath();
+        CuteText.draw(ctx,value.toFixed(2),20,'black',this.canvasDom.width/2-20, this.canvasDom.height/2+30);
+        ctx.fill();
     }
     ticker(Function){
         var self=this,flag;
