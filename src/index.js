@@ -61,13 +61,13 @@ class Stage {
     Linear(t, b, c, d) { return c*t/d + b; }
     setPercent(Roule,value){
         this.stackSize = Roule.items.length
-        var max = value/100*this.stackSize,index = 0,self=this,value=0;
+        var max = value/100*this.stackSize,Roule = 0,self=this,value=0;
         this.ticker(function () {
             let item=Roule.items[Math.floor(value)]
             self.render(item,value,'blue');
-            if(index<self.stackSize){
-                index+=1;
-                value=(index/self.stackSize)*max;
+            if(Roule<self.stackSize){
+                Roule+=1;
+                value=(Roule/self.stackSize)*max;
                 return true
             } else{
                 return false
@@ -123,7 +123,7 @@ class Stage {
 }
 
 /*轮盘对象*/
-class Index {
+class Roule {
     constructor(el,x0=120,y0=120,r0=80,dr=1,rw=20,rh=2){
         this.el=el;
         this.items=[];
@@ -173,10 +173,10 @@ class Index {
 
 if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
-        exports = module.exports = Index;
+        exports = module.exports = Roule;
     }
-    exports.Index = Index;
+    exports.Roule = Roule;
 } else {
-    window.Roule = Index;
+    window.Roule = Roule;
 }
 
