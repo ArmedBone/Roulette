@@ -7,11 +7,13 @@
 <body>
     <canvas id="canvas"></canvas>
 </body>
-<script src="Roulette.js"></script>
+<script src="index.js"></script>
 <script>
-    var r =new Roulette(document.querySelector("#canvas"));
+    var r =new Roule(document.querySelector("#canvas"));
     r.setValue(92.52)
-
+    setTimeout(function () {
+        r.setValue(73)
+    },2000)
 
 </script>
 </html>

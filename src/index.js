@@ -11,6 +11,7 @@ class CuteLine {
         ctx.fillRect(this.x,this.y-2,this.width,this.height);
     }
 }
+
 class CuteDot {
     constructor(x,y,r){
         this.x=x;
@@ -22,14 +23,107 @@ class CuteDot {
         ctx.arc(this.x,this.y,this.r,0,2*Math.PI);
     }
 }
+
 const CuteText = {
     draw(ctx,value,size,fillColor,x0,y0){
         ctx.fillStyle=fillColor;
         ctx.font = "normal "+size+"px Verdana";
-        ctx.fillText(value+"%",x0-20, y0);
+        ctx.fillText(value,x0-20, y0);
     }
 }
-class Roulette {
+
+
+class Stage {
+    constructor(canvasDom,width=160,height=160){
+        this.canvasDom = canvasDom;
+        this.canvasDom.width = width;
+        this.canvasDom.height = height;
+        this.context = this.canvasDom.getContext('2d');
+        this.stackSize=0;
+    }
+    create(Roule,value){
+        var self=this;
+        this.context.clearRect(0,0,this.canvasDom.width,this.canvasDom.height)
+        Roule.items.forEach(item=>{
+           self.render(item,0,'silver');
+        })
+        this.setLabel();
+        this.setPercent(Roule,value)
+    }
+    setLabel(){
+        let ctx = this.context,self=this;
+        ctx.beginPath();
+        ctx.fillStyle="silver"
+        ctx.font = "normal 20px Verdana";
+        ctx.fillText("好评率",this.canvasDom.width/2-30, this.canvasDom.height/2);
+        ctx.fill();
+    }
+    Linear(t, b, c, d) { return c*t/d + b; }
+    setPercent(Roule,value){
+        this.stackSize = Roule.items.length
+        var max = value/100*this.stackSize,index = 0,self=this,value=0;
+        this.ticker(function () {
+            let item=Roule.items[Math.floor(value)]
+            self.render(item,value,'blue');
+            if(index<self.stackSize){
+                index+=1;
+                value=(index/self.stackSize)*max;
+                return true
+            } else{
+                return false
+            }
+        })
+    }
+    render(item,value,fillColor){
+
+        let rad = item.get('rad');
+        let ctx = this.context,self=this;
+
+
+        ctx.translate(this.canvasDom.width/2, this.canvasDom.height/2)
+        ctx.rotate(rad);
+
+        let dot = item.get("dot");
+        let rect = item.get("rect");
+
+        ctx.beginPath();
+        dot.draw(ctx,fillColor);
+        rect.draw(ctx,fillColor);
+        ctx.fill();
+
+        ctx.rotate(-rad);
+        ctx.translate(-this.canvasDom.width/2, -this.canvasDom.height/2)
+
+        this.drawValue(value);
+    }
+    drawValue(value){
+        value =value*100/this.stackSize;
+        let ctx = this.context,self=this;
+        let labelValue = value.toFixed(2)+"%";
+        let labelWidth = ctx.measureText(labelValue).width;
+
+        ctx.beginPath();
+        ctx.fillStyle ='rgba(255,255,255,1)';
+        ctx.fillRect(this.canvasDom.width/2-labelWidth/2, this.canvasDom.height/2+10,labelWidth, 25);
+        ctx.fill();
+        ctx.beginPath();
+        CuteText.draw(ctx,labelValue,20,'black',this.canvasDom.width/2-labelWidth/4, this.canvasDom.height/2+30);
+        ctx.fill();
+    }
+    ticker(Function){
+        var self=this,flag;
+        function requestAnimationFrame(){
+            flag = Function(self.context);
+            setTimeout( function () {
+                if(flag)requestAnimationFrame()
+            },15)
+        }
+        requestAnimationFrame();
+    }
+}
+
+/*轮盘对象*/
+class Index {
     constructor(el,x0=120,y0=120,r0=80,dr=1,rw=20,rh=2){
         this.el=el;
         this.items=[];
@@ -75,90 +169,14 @@ class Roulette {
             this.items.push(item);
         })
     }
-
 }
-class Stage {
-    constructor(canvasDom,width=160,height=160){
-        this.canvasDom = canvasDom;
-        this.canvasDom.width = width;
-        this.canvasDom.height = height;
-        this.context = this.canvasDom.getContext('2d');
-        this.stackSize=0;
-    }
-    create(roulette,value){
-        var self=this;
-        roulette.items.forEach(item=>{
-           self.render(item,0,'silver');
-        })
-        this.setLabel();
-        this.setPercent(roulette,value)
-    }
-    setLabel(){
-        let ctx = this.context,self=this;
-        ctx.beginPath();
-        ctx.fillStyle="silver"
-        ctx.font = "normal 20px Verdana";
-        ctx.fillText("好评率",this.canvasDom.width/2-30, this.canvasDom.height/2);
-        ctx.fill();
-    }
-    Linear(t, b, c, d) { return c*t/d + b; }
-    setPercent(roulette,value){
-        this.stackSize = roulette.items.length
-        var max = value/100*this.stackSize,index = 0,self=this,value=0;
-        this.ticker(function () {
-            let item=roulette.items[Math.floor(value)]
-            self.render(item,value,'blue');
-            if(index<self.stackSize){
-                index+=1;
-                value=(index/self.stackSize)*max;
-                return true
-            } else{
-                return false
-            }
-        })
-    }
-    render(item,value,fillColor){
 
-        let rad = item.get('rad');
-        let ctx = this.context,self=this;
-
-
-        ctx.translate(this.canvasDom.width/2, this.canvasDom.height/2)
-        ctx.rotate(rad);
-
-        let dot = item.get("dot");
-        let rect = item.get("rect");
-
-        ctx.beginPath();
-        dot.draw(ctx,fillColor);
-        rect.draw(ctx,fillColor);
-        ctx.fill();
-
-        ctx.rotate(-rad);
-        ctx.translate(-this.canvasDom.width/2, -this.canvasDom.height/2)
-
-        this.drawValue(value);
+if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+        exports = module.exports = Index;
     }
-    drawValue(value){
-        value =value*100/this.stackSize;
-        let ctx = this.context,self=this;
-        ctx.beginPath();
-        ctx.fillStyle ='rgba(255,255,255,1)';
-        ctx.fillRect(this.canvasDom.width/2-40, this.canvasDom.height/2+10,80, 25);
-        ctx.fill();
-        ctx.beginPath();
-        CuteText.draw(ctx,value.toFixed(2),20,'black',this.canvasDom.width/2-20, this.canvasDom.height/2+30);
-        ctx.fill();
-    }
-    ticker(Function){
-        var self=this,flag;
-        function requestAnimationFrame(){
-            flag = Function(self.context);
-            setTimeout( function () {
-                if(flag)requestAnimationFrame()
-            },15)
-        }
-        requestAnimationFrame();
-    }
+    exports.Index = Index;
+} else {
+    window.Roule = Index;
 }
 
